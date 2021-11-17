@@ -21,7 +21,6 @@ public class CustomerSearchCriteriaTo extends AbstractSearchCriteriaTo {
   /**
    * @return firstnameId
    */
-
   public String getFirstname() {
 
     return firstname;
@@ -30,7 +29,6 @@ public class CustomerSearchCriteriaTo extends AbstractSearchCriteriaTo {
   /**
    * @param firstname setter for firstname attribute
    */
-
   public void setFirstname(String firstname) {
 
     this.firstname = firstname;
@@ -39,7 +37,6 @@ public class CustomerSearchCriteriaTo extends AbstractSearchCriteriaTo {
   /**
    * @return lastnameId
    */
-
   public String getLastname() {
 
     return lastname;
@@ -48,7 +45,6 @@ public class CustomerSearchCriteriaTo extends AbstractSearchCriteriaTo {
   /**
    * @param lastname setter for lastname attribute
    */
-
   public void setLastname(String lastname) {
 
     this.lastname = lastname;

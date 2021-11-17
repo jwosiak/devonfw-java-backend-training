@@ -80,4 +80,5 @@ public class CustomerEto extends AbstractEto implements Customer {
 
     return true;
   }
+
 }
