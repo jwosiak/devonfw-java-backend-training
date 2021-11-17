@@ -58,22 +58,42 @@ public class UcManageOrderImpl extends AbstractOrderUc implements UcManageOrder 
   }
 
   @Override
-  public OrderCto createOrder(CustomerEto owner, ItemEto position1, ItemEto position2) {
+  public OrderCto saveOrder(OrderCto orderCto) {
 
-    CustomerEntity ownerEntity = getBeanMapper().map(owner, CustomerEntity.class);
-    Set<ItemEntity> itemEntities = Arrays.asList(position1, position2).stream()
+    CustomerEntity ownerEntity = getBeanMapper().map(orderCto.getOwner(), CustomerEntity.class);
+    getCustomerRepository().save(ownerEntity);
+
+    Set<ItemEntity> itemEntities = orderCto.getOrderPositions().stream()
         .map(item -> getBeanMapper().map(item, ItemEntity.class)).collect(Collectors.toSet());
-    OrderEntity orderEntity = new OrderEntity();
+    itemEntities = new HashSet<>(getItemRepository().saveAll(itemEntities));
+
+    OrderEntity orderEntity = getBeanMapper().map(orderCto.getOrder(), OrderEntity.class);
     orderEntity.setOwner(ownerEntity);
     orderEntity.setOrderPositions(itemEntities);
-    orderEntity.setPrice(position1.getPrice() + position2.getPrice());
     orderEntity = getOrderRepository().save(orderEntity);
-    orderEntity.setStatus(OrderStatus.NEW);
-    OrderCto res = new OrderCto();
-    res.setOrder(getBeanMapper().map(orderEntity, OrderEto.class));
-    res.setOwner(owner);
-    res.setOrderPositions(new HashSet<>(Arrays.asList(position1, position2)));
-    return res;
+
+    orderCto.setOrder(getBeanMapper().map(orderEntity, OrderEto.class));
+    orderCto.setOwner(getBeanMapper().map(ownerEntity, CustomerEto.class));
+    orderCto.setOrderPositions(
+        itemEntities.stream().map(item -> getBeanMapper().map(item, ItemEto.class)).collect(Collectors.toSet()));
+
+    return orderCto;
+  }
+
+  @Override
+  public OrderCto createOrder(CustomerEto owner, ItemEto position1, ItemEto position2) {
+
+    OrderEto newOrderEto = new OrderEto();
+    OrderCto newOrderCto = new OrderCto();
+
+    newOrderEto.setPrice(position1.getPrice() + position2.getPrice());
+    newOrderEto.setStatus(OrderStatus.NEW);
+
+    newOrderCto.setOrder(newOrderEto);
+    newOrderCto.setOrderPositions(new HashSet<>(Arrays.asList(position1, position2)));
+    newOrderCto.setOwner(owner);
+
+    return saveOrder(newOrderCto);
   }
 
 }

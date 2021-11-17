@@ -26,6 +26,8 @@ public interface UcManageOrder {
    */
   OrderEto saveOrder(OrderEto order);
 
+  OrderCto saveOrder(OrderCto order);
+
   OrderCto createOrder(CustomerEto owner, ItemEto position1, ItemEto position2);
 
 }

@@ -150,4 +150,10 @@ public class OrderserviceImpl extends AbstractComponentFacade implements Orderse
     return this.ucFindOrder.findOrderCto(id);
   }
 
+  @Override
+  public OrderCto saveOrder(OrderCto order) {
+
+    return this.ucManageOrder.saveOrder(order);
+  }
+
 }
