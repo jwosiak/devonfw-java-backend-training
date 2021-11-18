@@ -8,7 +8,6 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
@@ -39,7 +38,7 @@ public abstract class BaseWebSecurityConfig extends WebSecurityConfigurerAdapter
   private UserDetailsService userDetailsService;
 
   @Inject
-  private PasswordEncoder passwordEncoder;
+  AuthenticationProviderImpl authenticationProviderImpl;
 
   private CorsFilter getCorsFilter() {
 
@@ -66,7 +65,7 @@ public abstract class BaseWebSecurityConfig extends WebSecurityConfigurerAdapter
   public void configure(HttpSecurity http) throws Exception {
 
     String[] unsecuredResources = new String[] { "/login", "/security/**", "/services/rest/login",
-    "/services/rest/logout" };
+    "/services/rest/logout", "/services/rest/orderservice/*/items/*" };
 
     http
         //
@@ -77,7 +76,7 @@ public abstract class BaseWebSecurityConfig extends WebSecurityConfigurerAdapter
         // activate crsf check for a selection of urls (but not for login & logout)
         .csrf().disable().httpBasic().and()
 
-        .headers().frameOptions().sameOrigin().and()
+        // .headers().frameOptions().sameOrigin().and()
 
         // configure parameters for simple form login (and logout)
         .formLogin().successHandler(new SimpleUrlAuthenticationSuccessHandler()).defaultSuccessUrl("/")
@@ -134,14 +133,12 @@ public abstract class BaseWebSecurityConfig extends WebSecurityConfigurerAdapter
     return jsonFilter;
   }
 
+  @Override
   @SuppressWarnings("javadoc")
   @Inject
-  public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+  public void configure(AuthenticationManagerBuilder auth) throws Exception {
 
-    auth.inMemoryAuthentication().withUser("waiter").password(this.passwordEncoder.encode("waiter")).roles("Waiter")
-        .and().withUser("cook").password(this.passwordEncoder.encode("cook")).roles("Cook").and().withUser("barkeeper")
-        .password(this.passwordEncoder.encode("barkeeper")).roles("Barkeeper").and().withUser("chief")
-        .password(this.passwordEncoder.encode("chief")).roles("Chief");
+    // auth.authenticationProvider(this.authenticationProviderImpl);
   }
 
 }

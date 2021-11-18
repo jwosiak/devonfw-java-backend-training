@@ -1,10 +1,9 @@
 package com.devonfw.app.java.order.general.common.impl.security;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -18,7 +17,12 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.devonfw.app.java.order.general.dataaccess.api.RightEntity;
+import com.devonfw.app.java.order.general.dataaccess.api.RoleEntity;
+import com.devonfw.app.java.order.general.dataaccess.api.UserEntity;
+import com.devonfw.app.java.order.general.dataaccess.api.repo.UserRepository;
 import com.devonfw.module.security.common.api.accesscontrol.AccessControl;
 import com.devonfw.module.security.common.api.accesscontrol.AccessControlProvider;
 import com.devonfw.module.security.common.base.accesscontrol.AccessControlGrantedAuthority;
@@ -38,21 +42,19 @@ public class BaseUserDetailsService implements UserDetailsService {
 
   private AccessControlProvider accessControlProvider;
 
+  @Inject
+  private UserRepository userRepository;
+
+  @Inject
+  private PasswordEncoder passwordEncoder;
+
   @Override
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-    Set<GrantedAuthority> authorities = getAuthorities(username);
-    UserDetails user;
-    try {
-      user = getAmBuilder().getDefaultUserDetailsService().loadUserByUsername(username);
-      User userData = new User(user.getUsername(), user.getPassword(), authorities);
-      return userData;
-    } catch (Exception e) {
-      e.printStackTrace();
-      UsernameNotFoundException exception = new UsernameNotFoundException("Authentication failed.", e);
-      LOG.warn("Failed to get user {}.", username, exception);
-      throw exception;
-    }
+    UserEntity user = this.userRepository.findByName(username);
+
+    Set<GrantedAuthority> authorities = getAuthorities(user);
+    return new User(user.getName(), "{noop}" + user.getPassword(), authorities);
   }
 
   /**
@@ -60,12 +62,10 @@ public class BaseUserDetailsService implements UserDetailsService {
    * @return the associated {@link GrantedAuthority}s
    * @throws AuthenticationException if no principal is retrievable for the given {@code username}
    */
-  protected Set<GrantedAuthority> getAuthorities(String username) throws AuthenticationException {
+  protected Set<GrantedAuthority> getAuthorities(UserEntity user) throws AuthenticationException {
 
-    Objects.requireNonNull(username, "username");
-    // determine granted authorities for spring-security...
     Set<GrantedAuthority> authorities = new HashSet<>();
-    Collection<String> accessControlIds = getRoles(username);
+    Collection<String> accessControlIds = getRights(user);
     Set<AccessControl> accessControlSet = new HashSet<>();
     for (String id : accessControlIds) {
       boolean success = this.accessControlProvider.collectAccessControls(id, accessControlSet);
@@ -79,12 +79,10 @@ public class BaseUserDetailsService implements UserDetailsService {
     return authorities;
   }
 
-  private Collection<String> getRoles(String username) {
+  private Collection<String> getRights(UserEntity user) {
 
-    Collection<String> roles = new ArrayList<>();
-    // TODO for a reasonable application you need to retrieve the roles of the user from a central IAM system
-    roles.add(username);
-    return roles;
+    return user.getRoles().stream().map(RoleEntity::getRights).flatMap(Collection::stream).map(RightEntity::getName)
+        .collect(Collectors.toSet());
   }
 
   /**

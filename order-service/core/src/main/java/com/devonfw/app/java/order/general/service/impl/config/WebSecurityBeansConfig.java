@@ -7,10 +7,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 
+import com.devonfw.app.java.order.general.common.api.security.ApplicationAccessControlConfig;
 import com.devonfw.app.java.order.general.logic.impl.config.DefaultRolesPrefixPostProcessor;
 import com.devonfw.module.security.common.api.accesscontrol.AccessControlProvider;
 import com.devonfw.module.security.common.base.accesscontrol.AccessControlSchemaProvider;
-import com.devonfw.module.security.common.impl.accesscontrol.AccessControlProviderImpl;
 import com.devonfw.module.security.common.impl.accesscontrol.AccessControlSchemaProviderImpl;
 
 /**
@@ -28,7 +28,7 @@ public class WebSecurityBeansConfig {
   @Bean
   public AccessControlProvider accessControlProvider() {
 
-    return new AccessControlProviderImpl();
+    return new ApplicationAccessControlConfig();
   }
 
   /**
